@@ -22,6 +22,7 @@ Route::middleware([
 
     Route::controller(UserController::class)->group(function () {
         Route::get('/dashboard', 'Dashboard')->name('dashboard');
+        Route::post('/store', 'store')->name('store');
 
         Route::delete('users/{id}', 'destroy')->name('user.destroy');
     });

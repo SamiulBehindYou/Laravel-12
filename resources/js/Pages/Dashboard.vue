@@ -17,7 +17,7 @@ const props = defineProps({
 
 
 // State
-const showModal = ref(false)
+const showModalDelete = ref(false)
 const selectedUserId = ref(null)
 
 // Open modal with selected user
@@ -37,11 +37,48 @@ function deleteUser() {
   })
 }
 
-// function deleteUser(id){
-//     if (confirm('Are you sure you want to delete this user?')) {
-//         router.delete(`/users/${id}`)
-//     }
-// }
+// Create User
+const form = ref({
+    name: '',
+    email: '',
+    password: '',
+    errors: {
+        name: null,
+        email: null,
+        password: null,
+    },
+});
+const showModal = ref(false);
+const openModal = () => {
+    showModal.value = true;
+};
+
+
+const submit = () => {
+    form.value.errors.name = null;
+    form.value.errors.email = null;
+    form.value.errors.password = null;
+
+    router.post('/store', form.value, {
+        onFinish: () => {
+            showModal.value = false;
+            form.value.name = '';
+            form.value.email = '';
+            form.value.password = '';
+        },
+        onError: (errors) => {
+            if (errors.name) {
+                form.value.errors.name = errors.name[0];
+            }
+            if (errors.email) {
+                form.value.errors.email = errors.email[0];
+            }
+            if (errors.password) {
+                form.value.errors.password = errors.password[0];
+            }
+        },
+    });
+};
 
 </script>
 
@@ -71,11 +108,69 @@ function deleteUser() {
                             <ApplicationLogo class="block h-12 w-auto" />
 
                             <h1 class="mt-8 text-2xl font-medium text-gray-900">
-                                Welcome to your Jetstream application!
+                                Welcome to your User management!
                             </h1>
 
 
                         </div>
+
+                        <!-- Button -->
+                        <div class="mb-4">
+                            <button
+                                @click="openModal"
+                                class="bg-blue-600 text-white px-4 py-2 mt m-4 rounded hover:bg-blue-700"
+                            >
+                                Create User
+                            </button>
+                        </div>
+
+                        <!-- Modal -->
+                        <transition name="fade">
+                            <div
+                                v-if="showModal"
+                                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                            >
+                                <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                                <h3 class="text-lg font-semibold mb-4">Create New User</h3>
+
+                                <form @submit.prevent="submit" class="space-y-4">
+                                    <div>
+                                    <label class="block text-sm">Name</label>
+                                    <input v-model="form.name" type="text" class="w-full border p-2 rounded" />
+                                    <span class="text-red-500 text-sm" v-if="form.errors.name">{{ form.errors.name }}</span>
+                                    </div>
+
+                                    <div>
+                                    <label class="block text-sm">Email</label>
+                                    <input v-model="form.email" type="email" class="w-full border p-2 rounded" />
+                                    <span class="text-red-500 text-sm" v-if="form.errors.email">{{ form.errors.email }}</span>
+                                    </div>
+
+                                    <div>
+                                    <label class="block text-sm">Password</label>
+                                    <input v-model="form.password" type="password" class="w-full border p-2 rounded" />
+                                    <span class="text-red-500 text-sm" v-if="form.errors.password">{{ form.errors.password }}</span>
+                                    </div>
+
+                                    <div class="flex justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        @click="showModal = false"
+                                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Create
+                                    </button>
+                                    </div>
+                                </form>
+                                </div>
+                            </div>
+                        </transition>
 
                         <!-- Flash Message -->
                         <transition name="fade">
@@ -118,7 +213,7 @@ function deleteUser() {
 
         <!-- Confirmation Modal -->
         <transition name="fade">
-            <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div v-if="showModalDelete" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
                 <h3 class="text-lg font-semibold mb-4">Confirm Deletion</h3>
                 <p class="mb-6 text-gray-700">Are you sure you want to delete this user?</p>
