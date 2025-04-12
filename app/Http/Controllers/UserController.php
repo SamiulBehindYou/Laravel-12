@@ -14,4 +14,14 @@ class UserController extends Controller
             'users' => User::all(),
         ]);
     }
+
+    public function destroy($id)
+    {
+        $user = User::find($id);
+        if ($user) {
+            $user->delete();
+            return redirect()->back()->with('success', 'User deleted successfully.');
+        }
+        return redirect()->back()->with('error', 'User not found.');
+    }
 }
