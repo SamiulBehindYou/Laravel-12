@@ -31,6 +31,19 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'User created successfully.');
     }
 
+    public function update(Request $request, User $user)
+    {
+        $updated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        ]);
+
+
+        $user->update($updated);
+
+        return redirect()->back()->with('success', 'User updated successfully.');
+    }
+
     public function destroy($id)
     {
         $user = User::find($id);

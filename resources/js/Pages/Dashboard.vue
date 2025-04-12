@@ -3,8 +3,9 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import Welcome from '@/Components/Welcome.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { data } from 'autoprefixer';
-import { router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 
 
 
@@ -80,6 +81,40 @@ const submit = () => {
     });
 };
 
+
+// Edit User
+const showModalEdit = ref(false);
+const editngUserId = ref(null);
+const openEditModal = (id) => {
+    showModalEdit.value = true;
+    editngUserId.value = id;
+    const user = props.users.find(user => user.id === id);
+    form.value.name = user.name;
+    form.value.email = user.email;
+    form.value.password = '';
+};
+const submitEdit = () => {
+    form.value.errors.name = null;
+    form.value.errors.email = null;
+
+    router.put(`/update/${editngUserId.value}`, form.value, {
+        onFinish: () => {
+            showModalEdit.value = false;
+            form.value.name = '';
+            form.value.email = '';
+            editngUserId.value = null;
+        },
+        onError: (errors) => {
+            if (errors.name) {
+                form.value.errors.name = errors.name[0];
+            }
+            if (errors.email) {
+                form.value.errors.email = errors.email[0];
+            }
+        },
+    });
+};
+
 </script>
 
 <template>
@@ -124,7 +159,7 @@ const submit = () => {
                             </button>
                         </div>
 
-                        <!-- Modal -->
+                        <!-- Create Modal -->
                         <transition name="fade">
                             <div
                                 v-if="showModal"
@@ -197,12 +232,15 @@ const submit = () => {
                                     </p>
                                 </div>
 
+                                <div class="mt-1">
+                                    <button @click="openEditModal(user.id)" class="bg-orange-600 mr-2 text-white px-4 py-1 rounded hover:bg-red-700">Edit</button>
                                 <button
                                     @click="confirmDelete(user.id)"
                                     class="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
                                 >
                                     Delete
                                 </button>
+                                </div>
                             </div>
 
                         </div>
@@ -211,7 +249,42 @@ const submit = () => {
             </div>
         </div>
 
-        <!-- Confirmation Modal -->
+        <!-- Edit Modal -->
+        <transition name="fade">
+            <div
+            v-if="showModalEdit"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                <h3 class="text-lg font-semibold mb-4">Edit User</h3>
+
+                <form @submit.prevent="submitEdit" class="space-y-4">
+                <div>
+                    <label class="block text-sm">Name</label>
+                    <input v-model="form.name" type="text" class="w-full border p-2 rounded" />
+                    <span v-if="form.errors.name" class="text-red-500 text-sm">{{ form.errors.name }}</span>
+                </div>
+
+                <div>
+                    <label class="block text-sm">Email</label>
+                    <input v-model="form.email" type="email" class="w-full border p-2 rounded" />
+                    <span v-if="form.errors.email" class="text-red-500 text-sm">{{ form.errors.email }}</span>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button @click="showModalEdit = false" type="button" class="px-4 py-2 bg-gray-300 rounded">
+                    Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">
+                    Save Changes
+                    </button>
+                </div>
+                </form>
+            </div>
+            </div>
+        </transition>
+
+        <!-- Delete Confirmation Modal -->
         <transition name="fade">
             <div v-if="showModalDelete" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
