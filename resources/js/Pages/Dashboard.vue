@@ -4,6 +4,7 @@ import Welcome from '@/Components/Welcome.vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { data } from 'autoprefixer';
 import { router } from '@inertiajs/vue3'
+import { ref } from 'vue'
 
 
 
@@ -14,11 +15,33 @@ const props = defineProps({
     },
 });
 
-function deleteUser(id){
-    if (confirm('Are you sure you want to delete this user?')) {
-        router.delete(`/users/${id}`)
-    }
+
+// State
+const showModal = ref(false)
+const selectedUserId = ref(null)
+
+// Open modal with selected user
+function confirmDelete(id) {
+  selectedUserId.value = id
+  showModal.value = true
 }
+
+
+// Execute delete
+function deleteUser() {
+  router.delete(`/users/${selectedUserId.value}`, {
+    onFinish: () => {
+      showModal.value = false
+      selectedUserId.value = null
+    }
+  })
+}
+
+// function deleteUser(id){
+//     if (confirm('Are you sure you want to delete this user?')) {
+//         router.delete(`/users/${id}`)
+//     }
+// }
 
 </script>
 
@@ -29,6 +52,16 @@ function deleteUser(id){
                 Dashboard
             </h2>
         </template>
+
+        <!-- Flash Message -->
+        <!-- <transition name="fade">
+        <div
+            v-if="$page.props.flash.success"
+            class="bg-green-100 text-green-800 px-4 py-2 mb-4 rounded shadow"
+        >
+            {{ $page.props.flash.success }}
+        </div>
+        </transition> -->
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -44,6 +77,15 @@ function deleteUser(id){
 
                         </div>
 
+                        <!-- Flash Message -->
+                        <transition name="fade">
+                            <div
+                                v-if="$page.props.flash.success"
+                                class="bg-green-100 text-green-800 px-4 py-2 mb-4 rounded shadow"
+                            >
+                                {{ $page.props.flash.success }}
+                            </div>
+                        </transition>
                         <div class="bg-gray-200 bg-opacity-25 grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 p-6 lg:p-8">
 
                             <div
@@ -61,7 +103,7 @@ function deleteUser(id){
                                 </div>
 
                                 <button
-                                    @click="deleteUser(user.id)"
+                                    @click="confirmDelete(user.id)"
                                     class="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700"
                                 >
                                     Delete
@@ -73,5 +115,55 @@ function deleteUser(id){
                 </div>
             </div>
         </div>
+
+        <!-- Confirmation Modal -->
+        <transition name="fade">
+            <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+                <h3 class="text-lg font-semibold mb-4">Confirm Deletion</h3>
+                <p class="mb-6 text-gray-700">Are you sure you want to delete this user?</p>
+                <div class="flex justify-end gap-3">
+                <button
+                    @click="showModal = false"
+                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                    Cancel
+                </button>
+                <button
+                    @click="deleteUser"
+                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                    Confirm
+                </button>
+                </div>
+            </div>
+            </div>
+        </transition>
+
     </AppLayout>
 </template>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* .fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+ */
+
+</style>
